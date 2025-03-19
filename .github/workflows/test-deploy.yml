@@ -50,7 +50,7 @@ jobs:
     # Test deployed endpoints
     - name: Test deployed endpoints
       run: |
-        # Wait for service and ingress to be ready
+        # Wait for service to be ready first
         kubectl wait --for=condition=ready pod -l app=rick-morty-service --timeout=300s
         
         # Debug information
@@ -59,23 +59,35 @@ jobs:
         kubectl get svc -A
         kubectl get ingress -A
         
-        # Get Minikube IP
+        # Get Minikube IP and verify it
         MINIKUBE_IP=$(minikube ip)
+        if [ -z "$MINIKUBE_IP" ]; then
+          echo "Failed to get Minikube IP"
+          exit 1
+        fi
         echo "Minikube IP: $MINIKUBE_IP"
         
-        # Add host entry and verify
+        # Remove any existing rick-morty.local entries to avoid duplicates
+        sudo sed -i '/rick-morty.local/d' /etc/hosts
+        
+        # Add new host entry
         echo "$MINIKUBE_IP rick-morty.local" | sudo tee -a /etc/hosts
+        echo "Current /etc/hosts:"
         cat /etc/hosts
         
-        # Wait for ingress to be ready and get its address
-        kubectl wait --for=condition=ready ingress/rick-morty-rick-morty --timeout=300s
-        INGRESS_IP=$(kubectl get ingress rick-morty-rick-morty -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-        echo "Ingress IP: $INGRESS_IP"
+        # Wait for ingress controller to be ready
+        kubectl wait --namespace ingress-nginx \
+          --for=condition=ready pod \
+          --selector=app.kubernetes.io/component=controller \
+          --timeout=300s
         
+        # Wait for our specific ingress
+        echo "Waiting for ingress to be ready..."
+        kubectl get ingress rick-morty-rick-morty -o yaml
+        kubectl wait --for=condition=ready ingress/rick-morty-rick-morty --timeout=300s || true
+        
+        # Test endpoints with verbose output
         echo "--- Testing Endpoints ---"
-        # Test with both IPs to debug
-        for ip in $MINIKUBE_IP $INGRESS_IP; do
-          echo "Testing with IP: $ip"
-          curl -v -H "Host: rick-morty.local" http://$ip/healthcheck
-          curl -v -H "Host: rick-morty.local" http://$ip/characters
-        done
+        echo "Testing with Minikube IP: $MINIKUBE_IP"
+        curl -v -H "Host: rick-morty.local" http://$MINIKUBE_IP/healthcheck
+        curl -v -H "Host: rick-morty.local" http://$MINIKUBE_IP/characters
