@@ -53,15 +53,29 @@ jobs:
         # Wait for service and ingress to be ready
         kubectl wait --for=condition=ready pod -l app=rick-morty-service --timeout=300s
         
+        # Debug information
+        echo "--- Debug Info ---"
+        kubectl get pods -A
+        kubectl get svc -A
+        kubectl get ingress -A
+        
         # Get Minikube IP
         MINIKUBE_IP=$(minikube ip)
+        echo "Minikube IP: $MINIKUBE_IP"
         
-        # Add host entry
+        # Add host entry and verify
         echo "$MINIKUBE_IP rick-morty.local" | sudo tee -a /etc/hosts
+        cat /etc/hosts
         
-        # Wait for ingress to be ready
+        # Wait for ingress to be ready and get its address
         kubectl wait --for=condition=ready ingress/rick-morty-rick-morty --timeout=300s
+        INGRESS_IP=$(kubectl get ingress rick-morty-rick-morty -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        echo "Ingress IP: $INGRESS_IP"
         
-        # Test endpoints through ingress
-        curl -H "Host: rick-morty.local" http://$MINIKUBE_IP/healthcheck
-        curl -H "Host: rick-morty.local" http://$MINIKUBE_IP/characters
+        echo "--- Testing Endpoints ---"
+        # Test with both IPs to debug
+        for ip in $MINIKUBE_IP $INGRESS_IP; do
+          echo "Testing with IP: $ip"
+          curl -v -H "Host: rick-morty.local" http://$ip/healthcheck
+          curl -v -H "Host: rick-morty.local" http://$ip/characters
+        done
