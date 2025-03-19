@@ -49,26 +49,28 @@ def get_all_characters():
 
 def filter_characters(characters):
     """
-    Filters the characters based on specific conditions:
-    - Species must be Human
-    - Status must be Alive
-    - Origin must be Earth
+    Filters the characters based on specific conditions.
+    You can modify these variables to filter different characters:
     
-    Args:
-        characters (list): List of character dictionaries from the API
-        
-    Returns:
-        list: Filtered list containing only characters matching all conditions
+    Available options:
+    - species: "Human", "Alien", "Humanoid", "Robot", "Animal"
+    - status: "Alive", "Dead", "unknown"
+    - origin: "Earth", "Citadel of Ricks", "Mars", "Anatomy Park", "Post-Apocalyptic Earth"
     """
+    # Filter variables - modify these to change the filter
+    target_species = "Human"
+    target_status = "Alive"
+    target_origin = "Earth"
+    
     # Create empty list for filtered characters
     filtered_characters = []
     
     # Check each character
     for character in characters:
         # Check if character meets ALL conditions
-        if (character['species'] == 'Human' and 
-            character['status'] == 'Alive' and 
-            'Earth' in character['origin']['name']):
+        if (character['species'] == target_species and 
+            character['status'] == target_status and 
+            target_origin in character['origin']['name']):
             
             # Create a simplified character dictionary with only the info we need
             filtered_char = {

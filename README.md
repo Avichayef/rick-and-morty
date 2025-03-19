@@ -1,3 +1,36 @@
+
+# Rick and Morty Characters Service
+
+This service provides information about characters from the Rick and Morty universe.
+
+## CI/CD Workflow
+
+The project uses GitHub Actions for continuous integration and deployment. The workflow is defined in `.github/workflows/test-deploy.yml`.
+
+### Workflow Overview
+- **Trigger**: Runs on push/PR to main branch
+- **Environment**: Ubuntu latest
+
+### Job Steps
+1. **Checkout**: Clones the repository
+2. **Minikube Setup**: 
+   - Installs and starts Minikube
+   - Enables ingress addon
+3. **Helm Setup**: Installs Helm package manager
+4. **Docker Build**:
+   - Builds service image inside Minikube
+   - Tags as rick-morty-service:latest
+5. **Helm Deploy**:
+   - Installs application using Helm chart
+   - Waits for deployment rollout
+6. **Testing**:
+   - Waits for pods and ingress to be ready
+   - Configures local DNS
+   - Tests healthcheck and characters endpoints
+
+### Local Testing
+Follow these steps to test locally:
+
 <<<<<<< HEAD
 # rick-morty-characters
 =======
