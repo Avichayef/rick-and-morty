@@ -1,0 +1,8 @@
+# metadata for Helm chart
+
+apiVersion: v2                                    # API version
+name: rick-morty-chart                           # Name of chart
+description: Helm chart for Rick-Morty Service  # description
+type: application                                # Type of chart
+version: 0.1.0                                   # Chart version
+

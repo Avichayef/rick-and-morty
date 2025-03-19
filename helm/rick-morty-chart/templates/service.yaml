@@ -1,0 +1,18 @@
+# Service template
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Use release name for unique service name
+  name: {{ .Release.Name }}-rick-morty
+spec:
+  # Service type from values.yaml
+  type: {{ .Values.service.type }}
+  ports:
+    # Port config from values.yaml
+    - port: {{ .Values.service.port }}         # Port exposed by the service
+      targetPort: {{ .Values.service.targetPort }} # Port on the pod
+      protocol: TCP
+  # Select pods 
+  selector:
+    app: rick-morty-service

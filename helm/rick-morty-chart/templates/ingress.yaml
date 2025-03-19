@@ -1,0 +1,28 @@
+# Ingress template
+
+# create ingress only if enabled in values.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  # Use release name for unique ingress name
+  name: {{ .Release.Name }}-rick-morty
+  annotations:
+    # Ingress controller config
+    nginx.ingress.kubernetes.io/rewrite-target: /    # Rewrite the URL path
+    nginx.ingress.kubernetes.io/ssl-redirect: "false" # Disable SSL redirect
+spec:
+  # Ingress controller class from values.yaml
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    # Host and path rules
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path }}
+            pathType: {{ .Values.ingress.pathType }}
+            backend:
+              service:
+                # Service to route traffic to
+                name: {{ .Release.Name }}-rick-morty
+                port:
+                  number: {{ .Values.service.port }}

@@ -1,0 +1,40 @@
+# Deployment template
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Use release name for unique deployment name
+  name: {{ .Release.Name }}-rick-morty
+  labels:
+    app: rick-morty-service
+spec:
+  # Number of replicas from values.yaml
+  replicas: {{ .Values.replicaCount }}
+  
+  # Pod selector
+  selector:
+    matchLabels:
+      app: rick-morty-service
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: rick-morty-service
+    spec:
+      containers:
+        # Container configuration
+        - name: {{ .Chart.Name }}
+          # details from values.yaml
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          # Resource limits from values.yaml
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}

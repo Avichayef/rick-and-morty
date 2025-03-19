@@ -1,0 +1,33 @@
+# default values for chart
+
+# Number of replicas to run
+replicaCount: 2
+
+# Container image configuration
+image:
+  repository: rick-morty-service    # Image name
+  tag: latest                       # Image tag
+  pullPolicy: Never                 # use local image
+
+# Kubernetes Service configuration
+service:
+  type: ClusterIP                   # Internal cluster service type
+  port: 80                          # External port
+  targetPort: 5000                  # Container port
+
+# Ingress configuration for external access
+ingress:
+  enabled: true                     # Enable ingress resource
+  className: nginx                  # Ingress controller class
+  host: rick-morty.local           # Hostname for the service
+  path: /                          # URL path
+  pathType: Prefix                 # Path matching type
+
+# Resource limits and requests
+resources:
+  requests:
+    memory: "64Mi"                 # Min memory
+    cpu: "250m"                    # Min CPU (0.25 cpu)
+  limits:
+    memory: "128Mi"                # Max memory
+    cpu: "500m"                    # Max CPU

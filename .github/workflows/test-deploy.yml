@@ -1,0 +1,52 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # Start Minikube
+    - name: Start Minikube
+      run: |
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        minikube start --driver=docker
+
+    # Install Helm
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'v3.12.0'
+
+    # Build Docker image inside Minikube
+    - name: Build Docker image
+      run: |
+        eval $(minikube -p minikube docker-env)
+        docker build -t rick-morty-service:latest .
+
+    # Deploy using Helm
+    - name: Deploy with Helm
+      run: |
+        helm install rick-morty ./helm/rick-morty-chart
+        kubectl rollout status deployment/rick-morty-rick-morty --timeout=300s
+
+    # Test deployed endpoints
+    - name: Test deployed endpoints
+      run: |
+        # Wait for service to be ready
+        kubectl wait --for=condition=ready pod -l app=rick-morty-service --timeout=300s
+        
+        # Get service URL from Minikube
+        SERVICE_URL=$(minikube service rick-morty-rick-morty --url)
+        
+        # Test endpoints
+        curl -f $SERVICE_URL/healthcheck
+        curl -f $SERVICE_URL/characters

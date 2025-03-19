@@ -1,0 +1,11 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To get the application URL, run:
+
+{{- if .Values.ingress.enabled }}
+  http://{{ .Values.ingress.host }}
+{{- else }}
+  kubectl port-forward svc/{{ .Release.Name }}-rick-morty {{ .Values.service.port }}:{{ .Values.service.port }}
+{{- end }}

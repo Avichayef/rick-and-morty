@@ -1,0 +1,22 @@
+# Ingress for Rick and Morty Characters
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rick-morty-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/enable-validation: "false"
+spec:
+  ingressClassName: nginx  # This replaces the deprecated annotation
+  rules:
+  - host: rick-morty.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rick-morty-service
+            port:
+              number: 80

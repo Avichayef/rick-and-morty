@@ -1,0 +1,91 @@
+---
+# Source: rick-morty-chart/templates/service.yaml
+# Service template
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Use release name for unique service name
+  name: rick-morty-rick-morty
+spec:
+  # Service type from values.yaml
+  type: ClusterIP
+  ports:
+    # Port config from values.yaml
+    - port: 80         # Port exposed by the service
+      targetPort: 5000 # Port on the pod
+      protocol: TCP
+  # Select pods 
+  selector:
+    app: rick-morty-service
+---
+# Source: rick-morty-chart/templates/deployment.yaml
+# Deployment template
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Use release name for unique deployment name
+  name: rick-morty-rick-morty
+  labels:
+    app: rick-morty-service
+spec:
+  # Number of replicas from values.yaml
+  replicas: 2
+  
+  # Pod selector
+  selector:
+    matchLabels:
+      app: rick-morty-service
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: rick-morty-service
+    spec:
+      containers:
+        # Container configuration
+        - name: rick-morty-chart
+          # details from values.yaml
+          image: "rick-morty-service:latest"
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          # Resource limits from values.yaml
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 250m
+            limits:
+              memory: 128Mi
+              cpu: 500m
+---
+# Source: rick-morty-chart/templates/ingress.yaml
+# Ingress template
+
+# create ingress only if enabled in values.yamlapiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  # Use release name for unique ingress name
+  name: rick-morty-rick-morty
+  annotations:
+    # Ingress controller config
+    nginx.ingress.kubernetes.io/rewrite-target: /    # Rewrite the URL path
+    nginx.ingress.kubernetes.io/ssl-redirect: "false" # Disable SSL redirect
+spec:
+  # Ingress controller class from values.yaml
+  ingressClassName: nginx
+  rules:
+    # Host and path rules
+    - host: rick-morty.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Service to route traffic to
+                name: rick-morty-rick-morty
+                port:
+                  number: 80

@@ -1,0 +1,13 @@
+# Service for Rick and Morty Characters
+apiVersion: v1
+kind: Service
+metadata:
+  name: rick-morty-service  # service name
+spec:
+  selector:
+    app: rick-morty-service  # select pods with this label
+  ports:
+    - protocol: TCP
+      port: 80  # service port
+      targetPort: 5000  # container port
+  type: ClusterIP  # internal service type, will be accessed via Ingress
