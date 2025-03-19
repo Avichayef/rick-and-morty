@@ -59,7 +59,7 @@ def filter_characters(characters):
     """
     # Filter variables - modify these to change the filter
     target_species = "Human"
-    target_status = "Alive"
+    target_status = "Dead"
     target_origin = "Earth"
     
     # Create empty list for filtered characters
