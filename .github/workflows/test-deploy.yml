@@ -20,6 +20,15 @@ jobs:
         sudo install minikube-linux-amd64 /usr/local/bin/minikube
         minikube start --driver=docker
 
+    # Enable Ingress addon
+    - name: Enable Ingress
+      run: |
+        minikube addons enable ingress
+        kubectl wait --namespace ingress-nginx \
+          --for=condition=ready pod \
+          --selector=app.kubernetes.io/component=controller \
+          --timeout=300s
+
     # Install Helm
     - name: Set up Helm
       uses: azure/setup-helm@v3
@@ -41,12 +50,18 @@ jobs:
     # Test deployed endpoints
     - name: Test deployed endpoints
       run: |
-        # Wait for service to be ready
+        # Wait for service and ingress to be ready
         kubectl wait --for=condition=ready pod -l app=rick-morty-service --timeout=300s
         
-        # Get service URL from Minikube
-        SERVICE_URL=$(minikube service rick-morty-rick-morty --url)
+        # Get Minikube IP
+        MINIKUBE_IP=$(minikube ip)
         
-        # Test endpoints
-        curl -f $SERVICE_URL/healthcheck
-        curl -f $SERVICE_URL/characters
+        # Add host entry
+        echo "$MINIKUBE_IP rick-morty.local" | sudo tee -a /etc/hosts
+        
+        # Wait for ingress to be ready
+        kubectl wait --for=condition=ready ingress/rick-morty-rick-morty --timeout=300s
+        
+        # Test endpoints through ingress
+        curl -H "Host: rick-morty.local" http://$MINIKUBE_IP/healthcheck
+        curl -H "Host: rick-morty.local" http://$MINIKUBE_IP/characters
